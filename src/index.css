@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white font-sans text-forest antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  /* Frosted glass surface used by event cards & RSVP form */
+  .glass {
+    @apply bg-white/50 backdrop-blur-xl border border-white/70 shadow-[0_8px_32px_rgba(44,76,59,0.08)];
+  }
+  .section-eyebrow {
+    @apply font-sans text-xs uppercase tracking-[0.35em] text-sage;
+  }
+  .input-field {
+    @apply w-full bg-transparent border-b border-sage/40 py-3 text-forest placeholder:text-forest/40
+      focus:outline-none focus:border-gold transition-colors duration-300;
+  }
+}
+
