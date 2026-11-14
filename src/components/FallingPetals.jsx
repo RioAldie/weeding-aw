@@ -1,54 +1,68 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 
 /**
- * Fixed full-page overlay of white lily petals drifting down,
- * swaying side to side and tumbling in 3D (rotateX/rotateY).
+ * GPU-composited falling white lily petals.
+ * Uses pure CSS @keyframes with translate3d + rotate so it runs on the
+ * compositor thread at 60fps on mobile without JS frame overhead or drop-shadow repaints.
  */
-export default function FallingPetals({ count = 16 }) {
+export default function FallingPetals({ count = 14 }) {
   const petals = useMemo(
     () =>
-      Array.from({ length: count }, () => ({
-        left: Math.random() * 100,
-        size: 14 + Math.random() * 18,
-        duration: 12 + Math.random() * 12,
-        delay: -Math.random() * 20, // negative = already mid-fall on load
-        sway: 30 + Math.random() * 60,
-        spin: Math.random() > 0.5 ? 360 : -360,
+      Array.from({ length: count }, (_, i) => ({
+        left: `${(i * (100 / count) + Math.random() * 6) % 100}%`,
+        size: 13 + Math.random() * 14,
+        duration: `${11 + Math.random() * 9}s`,
+        delay: `${-Math.random() * 18}s`,
+        sway: `${(Math.random() > 0.5 ? 1 : -1) * (24 + Math.random() * 36)}px`,
+        spin: `${Math.random() > 0.5 ? 360 : -360}deg`,
       })),
     [count]
   );
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[60] overflow-hidden" style={{ perspective: 600 }} aria-hidden>
+    <div className="pointer-events-none fixed inset-0 z-[60] overflow-hidden" aria-hidden>
+      <style>{`
+        @keyframes petal-fall {
+          0% {
+            transform: translate3d(0, -10vh, 0) rotate(0deg);
+            opacity: 0;
+          }
+          8% { opacity: 0.9; }
+          50% {
+            transform: translate3d(var(--sway), 50vh, 0) rotate(calc(var(--spin) * 0.5));
+          }
+          92% { opacity: 0.9; }
+          100% {
+            transform: translate3d(0, 110vh, 0) rotate(var(--spin));
+            opacity: 0;
+          }
+        }
+        .lily-petal {
+          will-change: transform;
+          animation: petal-fall var(--dur) linear var(--delay) infinite;
+        }
+      `}</style>
+
       {petals.map((p, i) => (
-        <motion.div
+        <div
           key={i}
-          className="absolute -top-10"
-          style={{ left: `${p.left}%`, width: p.size, height: p.size * 1.6 }}
-          animate={{
-            y: ['0vh', '110vh'],
-            x: [0, p.sway, -p.sway / 2, p.sway / 3, 0],
-            rotateZ: [0, p.spin],
-            rotateX: [0, 180, 360],
-            rotateY: [0, 120, 0],
+          className="lily-petal absolute top-0"
+          style={{
+            left: p.left,
+            width: p.size,
+            height: p.size * 1.55,
+            '--dur': p.duration,
+            '--delay': p.delay,
+            '--sway': p.sway,
+            '--spin': p.spin,
           }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
         >
-          <svg viewBox="0 0 20 32" className="h-full w-full drop-shadow-[0_2px_3px_rgba(44,76,59,0.15)]">
-            <defs>
-              <linearGradient id={`pg${i}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="80%" stopColor="#FBF8F1" />
-                <stop offset="100%" stopColor="#E3EBCF" />
-              </linearGradient>
-            </defs>
-            <path d="M10 0 C17 8 19 20 10 32 C1 20 3 8 10 0Z" fill={`url(#pg${i})`} opacity="0.9" />
+          <svg viewBox="0 0 20 32" className="h-full w-full">
+            <path d="M10 0 C17 8 19 20 10 32 C1 20 3 8 10 0Z" fill="#FAF7EF" stroke="#E3EBCF" strokeWidth="0.6" />
             <path d="M10 3 L10 29" stroke="#E8E2D2" strokeWidth="0.6" />
           </svg>
-        </motion.div>
+        </div>
       ))}
     </div>
   );
 }
-

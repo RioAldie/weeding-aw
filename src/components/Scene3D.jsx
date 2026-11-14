@@ -291,16 +291,16 @@ export default function Scene3D() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={isMobile ? [1, 1.25] : [1, 1.75]}
       camera={{ position: [0, 0, isMobile ? 8 : 6], fov: 45 }}
-      gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}
+      gl={{ antialias: !isMobile, alpha: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
     >
       <ambientLight intensity={0.6} />
       <directionalLight position={[4, 6, 5]} intensity={1.4} color="#FFF4E0" />
       <directionalLight position={[-5, -2, 3]} intensity={0.4} color="#E8F0DA" />
 
       {/* Soft studio environment (built locally, no network needed) for realistic gold & diamond reflections */}
-      <Environment resolution={256}>
+      <Environment resolution={isMobile ? 128 : 256}>
         <Lightformer form="rect" intensity={3} position={[0, 5, -5]} scale={[10, 3, 1]} color="#FFF6E5" />
         <Lightformer form="rect" intensity={2} position={[-5, 1, 2]} rotation-y={Math.PI / 2} scale={[8, 2, 1]} />
         <Lightformer form="rect" intensity={2} position={[5, 1, 2]} rotation-y={-Math.PI / 2} scale={[8, 2, 1]} color="#F3E3B8" />

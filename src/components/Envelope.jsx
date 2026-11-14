@@ -9,8 +9,9 @@ import { COUPLE } from './Hero.jsx';
  *
  * phases: closed -> flap -> letter -> exit -> (onOpen)
  */
-export default function Envelope({ onOpen }) {
+export default function Envelope({ onOpen, assetsReady = true }) {
   const [phase, setPhase] = useState('closed');
+  const [animDone, setAnimDone] = useState(false);
   const [guestName] = useState('Rio Aldi Erwanto');
 
   // Lock page scroll while the envelope is shown
@@ -21,12 +22,17 @@ export default function Envelope({ onOpen }) {
     };
   }, []);
 
+  // Only reveal the site once both the envelope animation AND assets are ready
+  useEffect(() => {
+    if (animDone && assetsReady) onOpen();
+  }, [animDone, assetsReady, onOpen]);
+
   const open = () => {
     if (phase !== 'closed') return;
     setPhase('flap');
     setTimeout(() => setPhase('letter'), 900);
     setTimeout(() => setPhase('exit'), 2700);
-    setTimeout(onOpen, 3500);
+    setTimeout(() => setAnimDone(true), 3500);
   };
 
   const flapOpen = phase !== 'closed';
@@ -155,6 +161,20 @@ export default function Envelope({ onOpen }) {
       >
         Tap the seal to open
       </motion.p>
+
+      {/* Only shown if the connection is slow and assets are still loading after the envelope opens */}
+      <AnimatePresence>
+        {animDone && !assetsReady && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 font-serif text-base italic text-sage"
+          >
+            Preparing your invitation…
+          </motion.p>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
